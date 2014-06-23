@@ -21,6 +21,11 @@ class Builder
     protected $logger;
 
     /**
+     * @var BuilderJob
+     */
+    protected $job;
+
+    /**
      * @param BuilderOptions|NUL $config
      */
     public function __construct(BuilderOptions $config = NULL)
@@ -31,6 +36,8 @@ class Builder
     public function run()
     {
         $this->getLogger()->info('Starting...');
+
+        $this->setJob(new BuilderJob());
 
         $em = $this->getEventManager();
 
@@ -109,6 +116,29 @@ class Builder
     public function setLogger(LoggerInterface $logger)
     {
         $this->logger = $logger;
+
+        return $this;
+    }
+
+    /**
+     * Storage for job-in-progress
+     *
+     * @return BuilderJob
+     */
+    public function getJob()
+    {
+        return $this->job;
+    }
+
+    /**
+     * Override object for storing job-in-progress
+     *
+     * @param  BuilderJob                 $job
+     * @return \LdcServiceBuilder\Builder
+     */
+    public function setJob(BuilderJob $job)
+    {
+        $this->job = $job;
 
         return $this;
     }

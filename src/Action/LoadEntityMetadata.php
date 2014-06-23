@@ -51,9 +51,6 @@ class LoadEntityMetadata implements ListenerAggregateInterface
             $mdt->addDriver($result->last(), $entitySource->getNamespace());
         }
 
-        $allClasses = $mdt->getAllClassNames();
-        $builder->getLogger()->debug('Located ' . count($allClasses) . ' entity class names!');
-
         // @TODO OMGWTF mocking up an EntityManager...really?
         $cfg = \Mockery::mock('Doctrine\ORM\Configuration');
         $cfg->shouldReceive('getNamingStrategy')->andReturnNull();
@@ -74,7 +71,11 @@ class LoadEntityMetadata implements ListenerAggregateInterface
 
         $mf = new MyClassMetadataFactory();
         $mf->setEntityManager($em);
-        pritn_r($mf->getAllMetadata());
+        $metadata = $mf->getAllMetadata();
+        
+        $builder->getLogger()->debug('Loaded metadata for ' . count($metadata) . ' entities!');
+
+        $builder->getJob()->setEntityMetadata($metadata);
     }
 
 }
