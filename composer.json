@@ -15,7 +15,8 @@
         }
     ],
     "require": {
-        "zendframework/zendframework": "2.*@stable"
+        "zendframework/zendframework": "2.*@stable",
+        "doctrine/doctrine-orm-module": "@stable"
     },
     "require-dev": {
         "phpunit/phpunit": "4.*@stable",
