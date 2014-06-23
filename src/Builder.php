@@ -45,6 +45,24 @@ class Builder
         $this->getLogger()->info('Loading entity metadata...');
         $result = $em->trigger('load_entity_metadata', $this, []);
         if ($result->stopped()) {
+            $this->getLogger()->debug('load_entity_metadata was stopped');
+
+            return $result->last();
+        }
+
+        $metadataSet = $this->getJob()->getEntityMetadata();
+        if ( empty($metadataSet) ) {
+            $this->getLogger()->crit('No entities found!');
+
+            return;
+        }
+
+        // Step 2: Generate classes
+        $this->getLogger()->info('Generating classes...');
+        $result = $em->trigger('generate', $this, []);
+        if ($result->stopped()) {
+            $this->getLogger()->debug('generate was stopped');
+
             return $result->last();
         }
     }
@@ -65,6 +83,9 @@ class Builder
             $em->attachAggregate(new Action\LoadEntityMetadata());
             $em->attachAggregate(new Action\LoadEntityMetadata\XmlFileParser());
             $em->attachAggregate(new Action\LoadEntityMetadata\YamlFileParser());
+
+            $em->attachAggregate(new Action\Generate());
+            $em->attachAggregate(new Action\Generate\GenerateEntityClasses());
 
             $this->setEventManager($em);
         }

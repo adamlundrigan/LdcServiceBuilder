@@ -72,7 +72,7 @@ class LoadEntityMetadata implements ListenerAggregateInterface
         $mf = new MyClassMetadataFactory();
         $mf->setEntityManager($em);
         $metadata = $mf->getAllMetadata();
-        
+
         $builder->getLogger()->debug('Loaded metadata for ' . count($metadata) . ' entities!');
 
         $builder->getJob()->setEntityMetadata($metadata);
