@@ -8,66 +8,65 @@ use Zend\EventManager\ListenerAggregateTrait;
 use LdcServiceBuilder\Options\EntityDefinitionOptions;
 
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\Tools\DisconnectedClassMetadataFactory;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
 class BuildEntityGraph implements ListenerAggregateInterface
 {
     use ListenerAggregateTrait;
-    
+
     public function attach(EventManagerInterface $em)
     {
         $this->listeners[] = $em->attach('build_entity_graph', array($this, 'buildEntityGraph'));
     }
-    
+
     public function buildEntityGraph(EventInterface $e)
     {
         $builder = $e->getTarget();
         $builder instanceof \LdcServiceBuilder\Builder;
-        
-        $builder->getLogger()->debug('Processing entity definition records...');        
-        
+
+        $builder->getLogger()->debug('Processing entity definition records...');
+
         $mdt = new MappingDriverChain();
-        
+
         $entitySources = $builder->getOptions()->getEntityDefinitions();
-        foreach ( $entitySources as $key => $entitySource ) {
-            if ( ! $entitySource instanceof EntityDefinitionOptions) {
+        foreach ($entitySources as $key => $entitySource) {
+            if (! $entitySource instanceof EntityDefinitionOptions) {
                 continue;
             }
-            
+
             $params = new \ArrayObject();
             $params['source'] = $entitySource;
-            
+
             $result = $builder->getEventManager()->trigger(
-                'build_entity_graph.get_driver', 
+                'build_entity_graph.get_driver',
                 $builder,
                 $params
             );
-            
+
             if ( ! $result->stopped() ) {
                 $builder->getLogger()->crit('Driver search failed for ' . $entitySource->getType());
                 continue;
             }
             $mdt->addDriver($result->last(), $entitySource->getNamespace());
         }
-        
+
         $allClasses = $mdt->getAllClassNames();
         $builder->getLogger()->debug('Located ' . count($allClasses) . ' entity class names!');
-  
+
         // @TODO OMGWTF mocking up an EntityManager...really?
         $cfg = \Mockery::mock('Doctrine\ORM\Configuration');
         $cfg->shouldReceive('getNamingStrategy')->andReturnNull();
         $cfg->shouldReceive('getMetadataDriverImpl')->andReturn($mdt);
         $cfg->shouldReceive('getQuoteStrategy')->andReturn(new \Doctrine\ORM\Mapping\DefaultQuoteStrategy());
-        
+
         $eventmgr = \Mockery::mock('Doctrine\Common\EventManager');
         $eventmgr->shouldReceive('hasListeners')->andReturn(false);
-        
+
         $plat = \Mockery::mock('Doctrine\DBAL\Platforms\AbstractPlatform');
         $plat->shouldReceive('prefersSequences')->andReturn(true);
-        $plat->shouldReceive('fixSchemaElementName')->andReturnUsing(function($arg) { return $arg; });
-        
+        $plat->shouldReceive('fixSchemaElementName')->andReturnUsing(function ($arg) { return $arg; });
+
         $em = \Mockery::mock('Doctrine\ORM\EntityManager');
         $em->shouldReceive('getConfiguration')->andReturn($cfg);
         $em->shouldReceive('getConnection->getDatabasePlatform')->andReturn($plat);
@@ -80,7 +79,6 @@ class BuildEntityGraph implements ListenerAggregateInterface
     }
 
 }
-
 
 // We have to override ClassMetadata::addDiscriminatorMapClass
 // because it run a class_exists check on the given class name,
@@ -101,7 +99,7 @@ class MyClassMetadataInfo extends ClassMetadata
         $className = $this->fullyQualifiedClassName($className);
         $className = ltrim($className, '\\');
         $this->discriminatorMap[$name] = $className;
-        
+
         if ($this->name == $className) {
             $this->discriminatorValue = $name;
         } else {
