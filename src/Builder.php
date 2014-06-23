@@ -35,8 +35,8 @@ class Builder
         $em = $this->getEventManager();
 
         // Step 1: Build the entity graph
-        $this->getLogger()->info('Building the entity graph...');
-        $result = $em->trigger('build_entity_graph', $this, []);
+        $this->getLogger()->info('Loading entity metadata...');
+        $result = $em->trigger('load_entity_metadata', $this, []);
         if ($result->stopped()) {
             return $result->last();
         }
@@ -55,9 +55,9 @@ class Builder
             $em = new \Zend\EventManager\EventManager();
 
             // Attach all the built-in aggregate event listeners
-            $em->attachAggregate(new Action\BuildEntityGraph());
-            $em->attachAggregate(new Action\BuildEntityGraph\XmlFileParser());
-            $em->attachAggregate(new Action\BuildEntityGraph\YamlFileParser());
+            $em->attachAggregate(new Action\LoadEntityMetadata());
+            $em->attachAggregate(new Action\LoadEntityMetadata\XmlFileParser());
+            $em->attachAggregate(new Action\LoadEntityMetadata\YamlFileParser());
 
             $this->setEventManager($em);
         }

@@ -11,16 +11,16 @@ use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\ORM\Tools\DisconnectedClassMetadataFactory;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
-class BuildEntityGraph implements ListenerAggregateInterface
+class LoadEntityMetadata implements ListenerAggregateInterface
 {
     use ListenerAggregateTrait;
 
     public function attach(EventManagerInterface $em)
     {
-        $this->listeners[] = $em->attach('build_entity_graph', array($this, 'buildEntityGraph'));
+        $this->listeners[] = $em->attach('load_entity_metadata', array($this, 'load'));
     }
 
-    public function buildEntityGraph(EventInterface $e)
+    public function load(EventInterface $e)
     {
         $builder = $e->getTarget();
         $builder instanceof \LdcServiceBuilder\Builder;
@@ -39,7 +39,7 @@ class BuildEntityGraph implements ListenerAggregateInterface
             $params['source'] = $entitySource;
 
             $result = $builder->getEventManager()->trigger(
-                'build_entity_graph.get_driver',
+                'load_entity_metadata.get_driver',
                 $builder,
                 $params
             );
@@ -74,8 +74,7 @@ class BuildEntityGraph implements ListenerAggregateInterface
 
         $mf = new MyClassMetadataFactory();
         $mf->setEntityManager($em);
-        var_dump($mf->getAllMetadata());
-
+        pritn_r($mf->getAllMetadata());
     }
 
 }
